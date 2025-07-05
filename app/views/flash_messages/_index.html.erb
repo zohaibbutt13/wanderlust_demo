@@ -1,0 +1,8 @@
+<div id="flash-messages">
+  <% flash.each do |key, message| %>
+    <div class="flash-message <%= key %>">
+      <button class="flash-close" aria-label="Close">&times;</button>
+      <%= message %>
+    </div>
+  <% end %>
+</div>

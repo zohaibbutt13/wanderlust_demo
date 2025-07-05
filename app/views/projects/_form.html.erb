@@ -1,0 +1,60 @@
+<% content_for :modals do %>
+  <%= render partial: 'projects/payment_dialog' %>
+<% end %>
+
+<div class="container mt-5">
+  <%= form_with(model: @project, local: true, html: { id: 'prject_form' }) do |form| %>
+    <div class="form-group mb-4">
+      <%= form.label :title, "Project Title", class: 'mb-1' %>
+      <%= form.text_field :title, class: "form-control", required: true %>
+      <div class="invalid-feedback">Please enter the project title.</div>
+    </div>
+
+    <div class="form-group mb-4">
+      <%= form.label :footage_link, "Footage Link", class: 'mb-1' %>
+      <%= form.text_field :footage_link, class: "form-control", required: true %>
+      <div class="invalid-feedback">Please enter the footage link.</div>
+    </div>
+    
+
+    <div class="form-group">
+      <%= form.label :videos, "Select Videos", class: 'mb-1' %><br>
+      
+      <div class="row">
+        <% Video.all.each do |video| %>
+          <div class="col-md-4 mb-3">
+            <div class="card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <h5 class="card-title"><%= video.title %></h5>
+                    <p class="card-text mb-3"><%= video.description %></p>
+                  </div>
+                  <div>
+                    <%= check_box_tag 'project[video_ids][]', video.id, false, class: "form-check-input js-video-checkbox", data: { cost: 10 } %>
+                  </div>
+                </div>
+
+                <% if video.file.attached? %>
+                  <div class="video-preview">
+                    <video width="100%" height="100%" controls>
+                      <source src="<%= rails_blob_path(video.file, disposition: 'inline') %>" type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="w-100 d-flex justify-content-center">
+      <button type="button" class="btn btn-primary px-4 mt-3" id="make_a_payment_btn">
+        Make a Payment
+      </button>
+      <%#= form.submit "Save Project", class: "btn btn-primary collapse", id: 'project_submit_btn' %>
+    </div>
+  <% end %>
+</div>

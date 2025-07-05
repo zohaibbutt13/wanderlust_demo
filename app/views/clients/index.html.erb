@@ -1,0 +1,30 @@
+<div class="container mt-5">
+  <h2 class="mb-4">Clients</h2>
+
+  <table class="table table-hover table-bordered align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th scope="col">Client Name</th>
+        <th scope="col">Number of Projects</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @clients.each do |client| %>
+        <tr>
+          <td><%= client.full_name %></td>
+          <td><%= client.projects_count %></td>
+          <td>
+            <%= button_to 'Login', login_client_path(client.id),
+                          method: :post,
+                          class: "btn btn-sm btn-primary" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <div class="d-flex justify-content-center mt-4">
+    <%= will_paginate @clients %>
+  </div>
+</div>

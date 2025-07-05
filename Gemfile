@@ -31,6 +31,15 @@ gem "tzinfo-data", platforms: %i[ mingw x64_mingw jruby ]
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
+# For the pagination purpose
+gem "will_paginate", "~> 4.0"
+
+# For SASS building
+gem "sassc-rails"
+
+# Background jobs
+gem "sidekiq"
+
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 

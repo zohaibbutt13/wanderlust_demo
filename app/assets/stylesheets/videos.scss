@@ -1,0 +1,16 @@
+.video-card.selected {
+  border: 2px solid #007bff;
+  background-color: rgba(0, 123, 255, 0.1); /* Light blue background */
+}
+
+.video-card.selected .card-body {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.video-preview {
+  height: 250px;
+
+  video {
+    object-fit: cover;
+  }
+}
