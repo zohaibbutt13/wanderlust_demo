@@ -11,6 +11,8 @@ module Projects
       [ true, "Project updated successfully" ]
     rescue ActiveRecord::RecordInvalid => e
       [ false, e.message ]
+    rescue ::StandardError => e
+      [ false, e.message ]
     end
 
     private

@@ -1,6 +1,7 @@
 class Project < ApplicationRecord
   has_many :projects_videos, dependent: :destroy
   has_many :videos, through: :projects_videos
+  has_many :notifications, as: :notifier
   belongs_to :user
   belongs_to :client
 
@@ -29,6 +30,14 @@ class Project < ApplicationRecord
   end
 
   def generate_notification
-    ::ProjectCreatedNotificationWorker.perform_async(self.id)
+    ::NotificationGenerationWorker.perform_async(
+      {
+        resource_name: self.class.name,
+        resource_id: self.id,
+        action: :create,
+        user_id: self.user_id,
+        payload: {}
+      }.to_json
+    )
   end
 end

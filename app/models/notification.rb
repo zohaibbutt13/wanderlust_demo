@@ -1,8 +1,10 @@
 class Notification < ApplicationRecord
   belongs_to :user
+  belongs_to :notifier, polymorphic: true
 
-  validates :title, length: { in: 4..255 }
   validates :status, inclusion: { in: [ "pending", "in_progress", "failed", "succeeded" ] }
+
+  serialize :payload, coder: JSON
 
   enum status: {
     pending: 1,
