@@ -31,7 +31,7 @@
                     <p class="card-text mb-3"><%= video.description %></p>
                   </div>
                   <div>
-                    <%= check_box_tag 'project[video_ids][]', video.id, false, class: "form-check-input js-video-checkbox", data: { cost: 10 } %>
+                    <%= check_box_tag 'project[video_ids][]', video.id, false, class: "form-check-input js-video-checkbox", data: { cost: video.cost_in_usd } %>
                   </div>
                 </div>
 

@@ -3,6 +3,7 @@ FactoryBot.define do
   factory :video do
     title { "Sample Video" }
     description { "Test description" }
+    cost_in_cents { 1500 }
 
     after(:build) do |video|
       video.file.attach(
