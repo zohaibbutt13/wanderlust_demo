@@ -1,46 +1,36 @@
 require 'rails_helper'
 
 RSpec.describe Clients::LoginService, type: :service do
-  let!(:client) { FactoryBot.create(:client) }
-  let(:session) { {} }
+  describe '#call' do
+    let(:client) { FactoryBot.create(:client) }
 
-  context "when client exists" do
-    let(:params) { ActionController::Parameters.new(id: client.id) }
+    context 'when the client exists' do
+      it 'sets the client in the session' do
+        session = {}
+        response = Clients::LoginService.new(client_id: client.id, session: session).call
 
-    it "logs in the client and sets session" do
-      service = described_class.new(params, session)
-      result, message = service.call
+        expect(response.success?).to be(true)
+        expect(response.message).to eq("Logged in successfully as #{client.full_name}")
+        expect(session[:client_id]).to eq(client.id)
+      end
 
-      expect(result).to eq(client)
-      expect(session[:client_id]).to eq(client.id)
-      expect(message).to eq("Logged in successfuly as #{client.full_name}")
+      it 'returns the correct client object' do
+        session = {}
+        response = Clients::LoginService.new(client_id: client.id, session: session).call
+
+        expect(response.client).to eq(client)
+      end
     end
-  end
 
-  context "when client does not exist" do
-    let(:params) { ActionController::Parameters.new(id: 0) }
+    context 'when the client does not exist' do
+      it 'returns an error message' do
+        session = {}
+        response = Clients::LoginService.new(client_id: -1, session: session).call
 
-    it "returns nil and error message" do
-      service = described_class.new(params, session)
-      result, message = service.call
-
-      expect(result).to be_nil
-      expect(session[:client_id]).to be_nil
-      expect(message).to eq("Client does not exist in the database")
-    end
-  end
-
-  context "when unexpected error occurs" do
-    let(:params) { ActionController::Parameters.new(id: client.id) }
-
-    it "rescues and returns a generic error" do
-      allow(Client).to receive(:find).and_raise(StandardError)
-
-      service = described_class.new(params, session)
-      result, message = service.call
-
-      expect(result).to be_nil
-      expect(message).to eq("Unable to login")
+        expect(response.success?).to be(false)
+        expect(response.message).to eq("Client does not exist in the database")
+        expect(session[:client_id]).to be_nil
+      end
     end
   end
 end

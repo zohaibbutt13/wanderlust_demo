@@ -1,49 +1,41 @@
 require 'rails_helper'
 
 RSpec.describe Projects::ListingService, type: :service do
-  let(:client) { FactoryBot.create(:client) }
-  let(:project_1) { FactoryBot.create(:project, client: client) }
-  let(:project_2) { FactoryBot.create(:project) }
-  let(:user) { FactoryBot.create(:user, role: :project_manager) }
-
-  let(:params) { ActionController::Parameters.new({ page: 1 }) }
-  let(:service) { described_class.new(client, params) }
-  let(:service_all) { described_class.new(nil, params) }
+  let(:current_client) { FactoryBot.create(:client) }
+  let(:other_client) { FactoryBot.create(:client) }
+  let!(:project1) { FactoryBot.create(:project, client: current_client) }
+  let!(:project2) { FactoryBot.create(:project, client: current_client) }
+  let!(:project3) { FactoryBot.create(:project, client: other_client) }
+  let!(:project4) { FactoryBot.create(:project) }
+  let(:permitted_params) { { page: 1, per_page: 2 } }
 
   describe '#call' do
-    context 'when a client is provided' do
-      before do
-        project_1
-        project_2
-      end
+    context 'when current_client is present' do
+      it 'returns only projects for the current client' do
+        service = Projects::ListingService.new(current_client: current_client, permitted_params: permitted_params)
+        projects = service.call
 
-      it 'loads only the projects for the client' do
-        result = service.call
-
-        expect(result).to include(project_1)
-        expect(result).not_to include(project_2)
-        expect(result.count).to eq(1)
+        expect(projects).to match_array([ project1, project2 ])
+        expect(projects.length).to eq(2)
       end
     end
 
-    context 'when no projects exist for the client' do
-      let(:empty_client) { FactoryBot.create(:client) }
+    context 'when current_client is not present' do
+      it 'returns all projects' do
+        service = Projects::ListingService.new(current_client: nil, permitted_params: permitted_params)
+        projects = service.call
 
-      it 'returns an empty collection for the client' do
-        empty_service = described_class.new(empty_client, params)
-        result = empty_service.call
-
-        expect(result).to be_empty
+        expect(projects).to include(project1, project2)
+        expect(projects.length).to eq(2)
       end
     end
 
-    context 'when no page parameter is provided' do
-      let(:empty_service) { described_class.new(client, ActionController::Parameters.new({})) }
+    context 'when pagination parameters are not provided' do
+      it 'returns the default pagination' do
+        service = Projects::ListingService.new(current_client: current_client, permitted_params: {})
+        projects = service.call
 
-      it 'defaults to page 1' do
-        result = empty_service.call
-
-        expect(result.current_page).to eq(1)
+        expect(projects.length).to eq(2)
       end
     end
   end

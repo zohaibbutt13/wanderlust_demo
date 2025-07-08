@@ -1,8 +1,9 @@
-# spec/factories/notifications.rb
 FactoryBot.define do
   factory :notification do
-    title { "Sample Notification" }
-    status { :pending }
     association :user
+    association :notifier, factory: :project
+    status { :pending }
+    action { "create" }
+    payload { { info: "Test payload" } }
   end
 end

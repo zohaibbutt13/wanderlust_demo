@@ -1,9 +1,9 @@
 FactoryBot.define do
   factory :project do
-    title { "Project #{SecureRandom.hex(4)}" }
+    title { "Sample Project" }
+    footage_link { "https://example.com/footage.mp4" }
     status { :pending }
-    footage_link { "https://example.com/video.mp4" }
-    user
-    client
+    association :user
+    association :client
   end
 end

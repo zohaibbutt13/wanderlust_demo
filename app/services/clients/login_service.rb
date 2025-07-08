@@ -1,7 +1,21 @@
 module Clients
   class LoginService
-    def initialize(params, session)
-      @client_id = login_params(params)[:id]
+    class Response
+      attr_reader :client, :message
+
+      def initialize(success:, client: nil, message:)
+        @success = success
+        @client = client
+        @message = message
+      end
+
+      def success?
+        @success
+      end
+    end
+
+    def initialize(client_id:, session:)
+      @client_id = client_id
       @session = session
     end
 
@@ -9,17 +23,9 @@ module Clients
       client = Client.find(@client_id)
       @session[:client_id] = client.id
 
-      [ client, "Logged in successfuly as #{client.full_name}" ]
+      Response.new(success: true, client: client, message: "Logged in successfully as #{client.full_name}")
     rescue ActiveRecord::RecordNotFound
-      [ nil, "Client does not exist in the database" ]
-    rescue StandardError
-      [ nil, "Unable to login" ]
-    end
-
-    private
-
-    def login_params(params)
-      params.permit(:id)
+      Response.new(success: false, message: "Client does not exist in the database")
     end
   end
 end

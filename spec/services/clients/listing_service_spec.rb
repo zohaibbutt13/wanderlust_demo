@@ -1,31 +1,31 @@
 require 'rails_helper'
 
 RSpec.describe Clients::ListingService, type: :service do
-  let!(:client1) { FactoryBot.create(:client) }
-  let!(:client2) { FactoryBot.create(:client) }
+  describe '#call' do
+    before do
+      3.times do
+        client = FactoryBot.create(:client)
+        FactoryBot.create_list(:project, 2, client: client)
+      end
+    end
 
-  before do
-    FactoryBot.create_list(:project, 2, client: client1)
-    FactoryBot.create(:project, client: client2)
-  end
-
-  context "when page param is provided" do
-    let(:params) { ActionController::Parameters.new(page: 1) }
-
-    it "returns paginated clients with projects_count" do
-      result = described_class.new(params).call
+    it 'returns paginated clients with project counts' do
+      result = described_class.new(page: 1, per_page: 2).call
 
       expect(result.length).to eq(2)
       expect(result.first).to respond_to(:projects_count)
     end
-  end
 
-  context "when page param is missing" do
-    let(:params) { ActionController::Parameters.new }
+    it 'defaults to first page if page is nil' do
+      result = described_class.new(page: nil, per_page: 2).call
 
-    it "defaults to page 1" do
-      result = described_class.new(params).call
-      expect(result.current_page).to eq(1)
+      expect(result.length).to eq(2)
+    end
+
+    it 'returns empty result for out-of-range page' do
+      result = described_class.new(page: 100, per_page: 10).call
+
+      expect(result).to be_empty
     end
   end
 end

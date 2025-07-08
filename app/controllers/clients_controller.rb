@@ -1,30 +1,28 @@
 class ClientsController < ApplicationController
+  include FlashResponseHandler
+
   skip_before_action :authenticate_current_client, only: [ :login, :logout, :index ]
   before_action :validate_current_client, only: [ :login, :index ]
 
   # POST /clients/:id/login
   def login
-    client, message = ::Clients::LoginService.new(params, session).call
+    response = Clients::LoginService.new(client_id: login_params[:id], session: session).call
 
-    if client
-      flash[:notice] = message
-      redirect_to projects_path
-    else
-      flash[:alert] = message
-      redirect_to root_path
-    end
+    handle_flash_response(response, projects_path, clients_path)
   end
 
+  # POST /clients/logout
   def logout
-    ::Clients::LogoutService.new(session).call
+    response = ::Clients::LogoutService.new(session).call
 
-    flash[:notice] = "Logged out successfully"
-    redirect_to root_path
+    handle_flash_response(response, root_path, projects_path)
   end
 
   # GET /clients
   def index
-    @clients = ::Clients::ListingService.new(params).call
+    @clients = Clients::ListingService.new(
+      page: params[:page]
+    ).call
 
     respond_to do |format|
       format.html
@@ -35,5 +33,9 @@ class ClientsController < ApplicationController
 
   def validate_current_client
     redirect_to projects_path if current_client
+  end
+
+  def login_params
+    params.permit(:id)
   end
 end

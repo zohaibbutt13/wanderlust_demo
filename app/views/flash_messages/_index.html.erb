@@ -2,7 +2,7 @@
   <% flash.each do |key, message| %>
     <div class="flash-message <%= key %>">
       <button class="flash-close" aria-label="Close">&times;</button>
-      <%= message %>
+      <p class="mb-0 pe-3"><%= message %></p>
     </div>
   <% end %>
 </div>

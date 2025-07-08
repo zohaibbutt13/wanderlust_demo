@@ -1,30 +1,25 @@
 module Projects
   class ListingService
-    def initialize(client, params)
-      @client = client
-      @page = listing_params(params)[:page] || 1
+    def initialize(current_client:, permitted_params:)
+      @current_client = current_client
+      @page = permitted_params[:page] || DEFAULT_PAGE
+      @per_page = permitted_params[:per_page] || DEFAULT_PER_PAGE
     end
 
     def call
-      if @client
-        load_client_projects
-      else
-        load_all_projects
-      end
+      current_client ? load_client_projects : load_all_projects
     end
 
     private
 
+    attr_reader :current_client, :page, :per_page
+
     def load_client_projects
-      @client.projects.includes(:user, :videos).paginate(page: @page, per_page: PER_PAGE)
+      current_client.projects.includes(:user, :videos).paginate(page: page, per_page: per_page)
     end
 
     def load_all_projects
-      Project.all.includes(:user, :videos).paginate(page: @page, per_page: PER_PAGE)
-    end
-
-    def listing_params(params)
-      params.permit(:page)
+      Project.all.includes(:user, :videos).paginate(page: page, per_page: per_page)
     end
   end
 end

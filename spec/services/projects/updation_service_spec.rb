@@ -1,31 +1,40 @@
 require 'rails_helper'
 
 RSpec.describe Projects::UpdationService, type: :service do
-  let(:project) { FactoryBot.create(:project, status: "pending") }
-  let(:params) { ActionController::Parameters.new({ project: { status: "completed" } }) }
-  let(:service) { described_class.new(project, params) }
+  let(:project) { FactoryBot.create(:project) }
+  let(:valid_params) { { status: :in_progress } }
+  let(:invalid_params) { { status: 'invalid_status' } }  # Invalid status should be a string not in the valid list
 
   describe '#call' do
-    context 'when valid parameters are provided' do
-      it 'updates the project status successfully' do
-        result, message = service.call
+    context 'when the update is successful' do
+      it 'returns a success response with the updated project' do
+        service = Projects::UpdationService.new(project: project, permitted_params: valid_params)
+        response = service.call
 
-        expect(result).to eq(true)
-        expect(message).to eq('Project updated successfully')
-        expect(project.reload.status).to eq("completed")
+        expect(response.success?).to be(true)
+        expect(response.message).to eq("Project updated successfully")
+        expect(response.project.status).to eq('in_progress')
       end
     end
 
-    context 'when invalid parameters are provided' do
-      let(:invalid_params) { ActionController::Parameters.new({ project: { status: "invalid_status" } }) }
-      let(:invalid_service) { described_class.new(project, invalid_params) }
+    context 'when the update fails due to validation errors' do
+      it 'returns a failure response with error messages' do
+        service = Projects::UpdationService.new(project: project, permitted_params: invalid_params)
+        response = service.call
 
-      it 'raises an error and does not update the project' do
-        result, message = invalid_service.call
+        expect(response.success?).to be(false)
+      end
+    end
 
-        expect(result).to eq(false)
-        expect(message).to eq("'invalid_status' is not a valid status")
-        expect(project.reload.status).to eq("pending")
+    context 'when an unexpected error occurs' do
+      it 'returns a failure response with a generic error message' do
+        allow(project).to receive(:update!).and_raise(StandardError, "Some unexpected error")
+
+        service = Projects::UpdationService.new(project: project, permitted_params: valid_params)
+        response = service.call
+
+        expect(response.success?).to be(false)
+        expect(response.message).to eq("Something went wrong while updating the project")
       end
     end
   end

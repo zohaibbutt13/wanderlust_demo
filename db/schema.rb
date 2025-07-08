@@ -40,59 +40,76 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_05_181135) do
   end
 
   create_table "clients", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.string "full_name"
-    t.string "email"
+    t.string "full_name", null: false
+    t.string "email", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_clients_on_email", unique: true
   end
 
   create_table "notifications", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.string "notifier_type"
-    t.bigint "notifier_id"
-    t.integer "status"
-    t.string "action"
-    t.text "payload"
-    t.bigint "user_id"
+    t.string "notifier_type", null: false
+    t.bigint "notifier_id", null: false
+    t.integer "status", default: 1, null: false
+    t.string "action", null: false
+    t.text "payload", null: false
+    t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["notifier_type", "notifier_id"], name: "index_notifications_on_notifier_type_and_notifier_id"
     t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
   create_table "projects", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.string "title"
-    t.text "footage_link"
-    t.integer "status"
-    t.bigint "client_id"
-    t.bigint "user_id"
+    t.string "title", null: false
+    t.text "footage_link", null: false
+    t.integer "status", default: 1, null: false
+    t.bigint "client_id", null: false
+    t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["client_id"], name: "index_projects_on_client_id"
+    t.index ["status"], name: "index_projects_on_status"
     t.index ["user_id"], name: "index_projects_on_user_id"
   end
 
   create_table "projects_videos", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.bigint "project_id"
-    t.bigint "video_id"
+    t.bigint "project_id", null: false
+    t.bigint "video_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_id", "video_id"], name: "index_projects_videos_on_project_id_and_video_id", unique: true
     t.index ["project_id"], name: "index_projects_videos_on_project_id"
     t.index ["video_id"], name: "index_projects_videos_on_video_id"
   end
 
   create_table "users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.string "full_name"
-    t.string "email"
-    t.integer "role"
+    t.string "full_name", null: false
+    t.string "email", null: false
+    t.integer "role", default: 1, null: false
+    t.boolean "active", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_users_on_active"
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["role"], name: "index_users_on_role"
   end
 
   create_table "videos", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.string "title"
+    t.string "title", null: false
     t.text "description"
-    t.integer "cost_in_cents"
+    t.integer "cost_in_cents", default: 0, null: false
+    t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_videos_on_active"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "notifications", "users"
+  add_foreign_key "projects", "clients"
+  add_foreign_key "projects", "users"
+  add_foreign_key "projects_videos", "projects"
+  add_foreign_key "projects_videos", "videos"
 end

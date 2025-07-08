@@ -1,47 +1,63 @@
 require 'rails_helper'
 
 RSpec.describe Projects::CreationService, type: :service do
-  let(:current_client) { FactoryBot.create(:client) } # Assuming you have a factory for Client
-  let(:default_project_manager) { FactoryBot.create(:user, role: :project_manager) }
-  let(:video1) { FactoryBot.create(:video) }
-  let(:video2) { FactoryBot.create(:video) }
-  let(:valid_params) do
-    ActionController::Parameters.new({
-      project: {
-        title: 'New Project',
-        footage_link: 'http://valid.url.com/video.mp4',
-        video_ids: [ video1.id, video2.id ]
-      }
-    })
-  end
-
-  before do
-    allow(User).to receive(:default_project_manager).and_return(default_project_manager)
+  let(:client) { FactoryBot.create(:client) }
+  let(:video) { FactoryBot.create(:video) }
+  let!(:user) { FactoryBot.create(:user, :project_manager) }
+  let(:params) do
+    {
+      title: "New Project",
+      footage_link: "http://example.com/video.mp4",
+      video_ids: [ video.id ]
+    }
   end
 
   describe '#call' do
     context 'when valid parameters are provided' do
-      it 'creates a project with associated videos' do
-        service = described_class.new(current_client, valid_params)
-        project, message = service.call
+      it 'creates a project and links videos' do
+        service = Projects::CreationService.new(
+          current_client: client,
+          permitted_params: params
+        )
 
-        expect(project).to be_persisted
-        expect(project.title).to eq('New Project')
-        expect(project.status).to eq('pending')
-        expect(project.videos.count).to eq(2)
-        expect(message).to eq('Project Saved successfuly')
+        expect { service.call }.to change { Project.count }.by(1)
+
+        project = Project.last
+        expect(project.title).to eq("New Project")
+        expect(project.footage_link).to eq("http://example.com/video.mp4")
+        expect(project.status).to eq("pending")
+        expect(project.videos.count).to eq(1)
+        expect(project.videos.first).to eq(video)
       end
     end
 
-    context 'when an error occurs during project creation' do
-      it 'rolls back the transaction and returns an error message' do
-        invalid_params = valid_params.merge(project: { title: nil }) # Simulate an invalid project title
+    context 'when no video_ids are provided' do
+      it 'returns a failure message' do
+        params[:video_ids] = []
 
-        service = described_class.new(current_client, invalid_params)
-        project, message = service.call
+        service = Projects::CreationService.new(
+          current_client: client,
+          permitted_params: params
+        )
 
-        expect(project).to be_nil
-        expect(message).to eq('Failed to create the project')
+        response = service.call
+        expect(response.success?).to be_falsey
+        expect(response.message).to eq("Please select at least one video")
+      end
+    end
+
+    context 'when project creation fails due to validation error' do
+      it 'returns a failure message with validation errors' do
+        params[:title] = nil
+
+        service = Projects::CreationService.new(
+          current_client: client,
+          permitted_params: params
+        )
+
+        response = service.call
+        expect(response.success?).to be_falsey
+        expect(response.message).to include("Title is too short (minimum is 4 characters)")
       end
     end
   end

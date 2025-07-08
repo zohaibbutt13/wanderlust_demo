@@ -9,8 +9,6 @@ class Project < ApplicationRecord
   validates :status, inclusion: { in: [ "pending", "in_progress", "completed" ] }
   validate :valid_footage_url?
 
-  after_create_commit :generate_notification
-
   enum status: {
     pending: 1,
     in_progress: 2,
@@ -27,17 +25,5 @@ class Project < ApplicationRecord
     end
   rescue URI::InvalidURIError
     errors.add(:footage_link, "is not a valid url")
-  end
-
-  def generate_notification
-    ::NotificationGenerationWorker.perform_async(
-      {
-        resource_name: self.class.name,
-        resource_id: self.id,
-        action: :create,
-        user_id: self.user_id,
-        payload: {}
-      }.to_json
-    )
   end
 end
